@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Юридический навигатор</title>
+<meta name="description" content="Интерактивный инструмент к Лекции 2: пять этапов правовой базы со ссылками на lex.uz, разбор Закона «Об электронном правительстве» и практикум «Правовая карта услуги».">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f5f1e6; --surface:#fffdf8; --surface-2:#eee5cd; --surface-3:#e3d8b8;
+    --ink:#1c2130; --ink-soft:#565c72; --ink-faint:#8b8f9e;
+    --border:#ddd0ac; --border-soft:#e8ddc0;
+    --teal:#0e7c86; --teal-ink:#053c42; --teal-bg:#e3f1f1;
+    --gold:#a8721f; --gold-ink:#5c3f0f; --gold-bg:#f7edd8;
+    --purple:#6b4c7a; --purple-ink:#3a2842; --purple-bg:#efe6f2;
+    --green:#3f7a52; --green-ink:#20402a; --green-bg:#e5f0e7;
+    --navy:#1f3a5f; --navy-ink:#132441; --navy-bg:#e6ecf3;
+    --danger:#b5432f; --danger-bg:#fbe9e4;
+    --shadow: 0 1px 2px rgba(28,22,10,.06), 0 8px 22px -10px rgba(28,22,10,.22);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12151d; --surface:#1a1f2a; --surface-2:#212838; --surface-3:#2a3245;
+      --ink:#eae5d6; --ink-soft:#a8adc0; --ink-faint:#6b7183;
+      --border:#333c52; --border-soft:#262e42;
+      --teal:#33bcc4; --teal-ink:#bdf1f3; --teal-bg:#12303380;
+      --gold:#e0a94f; --gold-ink:#ffe6b3; --gold-bg:#3a2c1280;
+      --purple:#b799c9; --purple-ink:#ecd9f4; --purple-bg:#2a223480;
+      --green:#7cc190; --green-ink:#d3f0dc; --green-bg:#1b2c2080;
+      --navy:#7c9cc9; --navy-ink:#dbe6f3; --navy-bg:#1a253880;
+      --danger:#e2836b; --danger-bg:#3a221c80;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -12px rgba(0,0,0,.55);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12151d; --surface:#1a1f2a; --surface-2:#212838; --surface-3:#2a3245;
+    --ink:#eae5d6; --ink-soft:#a8adc0; --ink-faint:#6b7183;
+    --border:#333c52; --border-soft:#262e42;
+    --teal:#33bcc4; --teal-ink:#bdf1f3; --teal-bg:#12303380;
+    --gold:#e0a94f; --gold-ink:#ffe6b3; --gold-bg:#3a2c1280;
+    --purple:#b799c9; --purple-ink:#ecd9f4; --purple-bg:#2a223480;
+    --green:#7cc190; --green-ink:#d3f0dc; --green-bg:#1b2c2080;
+    --navy:#7c9cc9; --navy-ink:#dbe6f3; --navy-bg:#1a253880;
+    --danger:#e2836b; --danger-bg:#3a221c80;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px -12px rgba(0,0,0,.55);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Golos Text', 'Segoe UI', system-ui, sans-serif;
+    line-height:1.5;
+  }
+  h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; text-wrap:balance; margin:0;}
+  .mono{font-family:'JetBrains Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--teal); color:var(--surface);}
+  :focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
+  /* ---- app bar ---- */
+  .appbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+    background:color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+    padding:12px 18px 0;
+  }
+  .appbar-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; max-width:1180px; margin:0 auto;}
+  .eyebrow{font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; margin-bottom:4px;}
+  h1.title{font-size:clamp(1.35rem,1.1rem + 1.2vw,1.85rem); font-weight:600; letter-spacing:-.01em;}
+  .theme-toggle{
+    flex:none; background:var(--surface); border:1px solid var(--border); border-radius:99px;
+    padding:6px 12px; font-size:.72rem; color:var(--ink-soft); cursor:pointer; box-shadow:var(--shadow);
+    margin-top:2px;
+  }
+  .tabs{display:flex; gap:4px; max-width:1180px; margin:14px auto 0; overflow-x:auto; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{
+    flex:none; display:flex; align-items:center; gap:8px;
+    padding:10px 16px 12px; background:none; border:none; cursor:pointer;
+    color:var(--ink-faint); font-size:.92rem; font-weight:600; font-family:'Golos Text',sans-serif;
+    border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  .tab-btn .n{
+    width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-size:.68rem; font-family:'JetBrains Mono',monospace; background:var(--surface-2); color:var(--ink-faint);
+  }
+  .tab-btn[data-active="true"]{color:var(--tab-c, var(--teal));}
+  .tab-btn[data-active="true"] .n{background:var(--tab-c, var(--teal)); color:#fff;}
+  .tab-btn[data-active="true"]{border-bottom-color:var(--tab-c, var(--teal));}
+
+  main{max-width:1180px; margin:0 auto; padding:22px 18px 72px;}
+  .panel{display:none;}
+  .panel[data-open="true"]{display:block;}
+
+  .lede{max-width:66ch; color:var(--ink-soft); font-size:.98rem; margin-bottom:22px;}
+  .lede strong{color:var(--ink);}
+
+  /* ---- era board (Tab 1) ---- */
+  .board{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
+    align-items:start;
+  }
+  @media (max-width:920px){
+    .board{grid-auto-flow:column; grid-auto-columns:78%; grid-template-columns:none; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;}
+    .era-col{scroll-snap-align:start;}
+  }
+  .era-col{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;}
+  .era-head{padding:14px 14px 12px; color:#fff; background:var(--era-c);}
+  .era-head .num{font-family:'JetBrains Mono',monospace; font-size:.72rem; opacity:.85;}
+  .era-head h3{font-size:1.02rem; font-weight:600; margin-top:2px; color:#fff;}
+  .era-head .range{font-family:'JetBrains Mono',monospace; font-size:.72rem; opacity:.9; margin-top:6px;}
+  .era-body{padding:10px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .act-link{
+    display:block; text-decoration:none; border:1px solid var(--border-soft); border-radius:10px;
+    padding:9px 10px; background:var(--surface); transition:border-color .12s ease, transform .12s ease;
+  }
+  .act-link:hover{border-color:var(--era-c); transform:translateY(-1px);}
+  .act-top{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:3px;}
+  .act-date{font-family:'JetBrains Mono',monospace; font-size:.7rem; font-weight:600; color:var(--era-c);}
+  .ext{font-size:.68rem; color:var(--ink-faint);}
+  .act-title{font-size:.82rem; font-weight:600; line-height:1.3; color:var(--ink);}
+  .act-num{display:block; font-family:'JetBrains Mono',monospace; font-size:.66rem; color:var(--ink-faint); margin-top:3px;}
+  .act-status{display:inline-block; margin-top:6px; font-size:.64rem; padding:1px 7px; border-radius:99px; background:var(--surface-2); color:var(--ink-soft);}
+  .act-status.rep{background:var(--danger-bg); color:var(--danger);}
+  .act-status.new{background:var(--gold-bg); color:var(--gold-ink);}
+  .act-link.keyact{border-color:var(--era-c); box-shadow:0 0 0 1px var(--era-c) inset;}
+
+  /* ---- law tab ---- */
+  .law-head{
+    background:var(--surface); border:1px solid var(--border-soft); border-left:4px solid var(--gold);
+    border-radius:12px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--shadow);
+  }
+  .law-head .lk{font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-ink); font-weight:700; margin-bottom:6px;}
+  .law-head h2{font-size:1.35rem; margin-bottom:8px;}
+  .law-head p{color:var(--ink-soft); font-size:.92rem; margin:0 0 10px; max-width:70ch;}
+  .law-head a.open{
+    display:inline-flex; align-items:center; gap:6px; font-size:.82rem; font-weight:600; color:var(--gold-ink);
+    text-decoration:none; border-bottom:1px dotted currentColor;
+  }
+  .chapters{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .chapter-chip{
+    font-size:.72rem; background:var(--gold-bg); color:var(--gold-ink); border-radius:8px; padding:6px 10px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .subtabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+  .subtab-btn{
+    padding:8px 14px; border-radius:99px; border:1px solid var(--border); background:var(--surface);
+    color:var(--ink-soft); font-size:.84rem; font-weight:600; cursor:pointer;
+  }
+  .subtab-btn[data-active="true"]{background:var(--gold); border-color:var(--gold); color:#fff;}
+  .subpanel{display:none;}
+  .subpanel[data-open="true"]{display:grid; gap:10px;}
+  .def-card{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px;
+    box-shadow:var(--shadow); display:grid; gap:8px; grid-template-columns:220px 1fr; align-items:start;
+  }
+  @media (max-width:640px){ .def-card{grid-template-columns:1fr;} }
+  .def-card h4{font-size:.98rem; color:var(--gold-ink);}
+  .def-card p{margin:0; font-size:.88rem; color:var(--ink-soft);}
+  .role-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow);}
+  .role-card h4{font-size:.98rem; margin-bottom:6px; color:var(--gold-ink);}
+  .role-card ul{margin:0; padding-left:18px; font-size:.86rem; color:var(--ink-soft);}
+  .role-card li{margin-bottom:3px;}
+  .rights-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow);}
+  .rights-card h4{font-size:.98rem; margin-bottom:10px; color:var(--gold-ink);}
+  .rights-card ol{margin:0 0 14px; padding-left:20px; font-size:.88rem; color:var(--ink-soft);}
+  .rights-card li{margin-bottom:5px;}
+  .resp-box{background:var(--danger-bg); border-radius:10px; padding:12px 14px; font-size:.86rem; color:var(--ink);}
+
+  /* ---- practice tab ---- */
+  .sit-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:20px;}
+  .sit-card{
+    text-align:left; cursor:pointer; background:var(--surface); border:1.5px solid var(--border-soft);
+    border-radius:12px; padding:13px 14px; box-shadow:var(--shadow); font-family:inherit;
+  }
+  .sit-card .sn{font-family:'JetBrains Mono',monospace; font-size:.68rem; color:var(--purple-ink); background:var(--purple-bg); border-radius:6px; padding:1px 7px; display:inline-block; margin-bottom:6px;}
+  .sit-card h4{font-size:.9rem; color:var(--ink); margin-bottom:4px;}
+  .sit-card p{margin:0; font-size:.78rem; color:var(--ink-faint);}
+  .sit-card[data-active="true"]{border-color:var(--purple); box-shadow:var(--shadow), 0 0 0 2px var(--purple);}
+
+  .sit-detail{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 20px; margin-bottom:22px; box-shadow:var(--shadow);}
+  .sit-detail-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .sit-detail-head h3{font-size:1.1rem; color:var(--purple-ink);}
+  .sit-row{margin-bottom:10px;}
+  .sit-row .lbl{font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-bottom:4px;}
+  .sit-row p{margin:0; font-size:.9rem; color:var(--ink);}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip-link{
+    text-decoration:none; font-size:.76rem; background:var(--navy-bg); color:var(--navy-ink);
+    border-radius:8px; padding:5px 10px; display:inline-flex; align-items:center; gap:5px;
+  }
+  .chip-link:hover{text-decoration:underline;}
+  .trap{background:var(--gold-bg); color:var(--gold-ink); border-radius:10px; padding:10px 12px; font-size:.86rem;}
+
+  .map-wrap{background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow);}
+  .map-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:4px;}
+  .map-head h3{font-size:1.05rem;}
+  .map-sub{color:var(--ink-soft); font-size:.86rem; margin:2px 0 14px;}
+  .map-toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .btn{
+    border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--ink);
+    padding:8px 13px; font-size:.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn.primary{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .btn:hover{border-color:var(--purple);}
+  .maptable{width:100%; border-collapse:collapse; font-size:.83rem;}
+  .maptable thead th{
+    text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);
+    padding:6px 8px; border-bottom:2px solid var(--border-soft); font-weight:700;
+  }
+  .maptable td{border-bottom:1px solid var(--border-soft); padding:4px; vertical-align:top;}
+  .maptable td[contenteditable="true"]{
+    padding:8px; border-radius:6px; min-width:90px; outline:none;
+  }
+  .maptable td[contenteditable="true"]:focus{background:var(--surface-2);}
+  .maptable td[contenteditable="true"]:empty:before{content:attr(data-ph); color:var(--ink-faint); font-style:italic;}
+  .maptable tr.example td{color:var(--ink-faint); font-style:italic;}
+  .rownum{font-family:'JetBrains Mono',monospace; color:var(--ink-faint); text-align:center; width:26px;}
+  .rowdel{width:30px; text-align:center;}
+  .rowdel button{background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:.95rem; line-height:1;}
+  .rowdel button:hover{color:var(--danger);}
+  .toast{
+    position:fixed; bottom:calc(18px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%) translateY(12px);
+    background:var(--ink); color:var(--bg); padding:9px 16px; border-radius:99px; font-size:.82rem;
+    opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease; z-index:50;
+  }
+  .toast[data-show="true"]{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  footer{max-width:1180px; margin:34px auto 0; padding:16px 18px 0; border-top:1px solid var(--border-soft); font-size:.76rem; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+<div class="appbar">
+  <div class="appbar-top">
+    <div>
+      <div class="eyebrow">Цифровое правительство и электронная торговля · Лекция 2</div>
+      <h1 class="title">Юридический навигатор</h1>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">☾ / ☀</button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn" data-tab="stages" style="--tab-c:var(--teal)"><span class="n">1</span>Пять этапов</button>
+    <button class="tab-btn" data-tab="law" style="--tab-c:var(--gold)"><span class="n">2</span>Закон</button>
+    <button class="tab-btn" data-tab="practice" style="--tab-c:var(--purple)"><span class="n">3</span>Практика</button>
+  </nav>
+</div>
+
+<main>
+  <section class="panel" data-panel="stages">
+    <p class="lede">Правовая база электронного правительства Узбекистана складывалась пятью слоями — от признания электронного документа юридически значимым (2003) до единой цифровой платформы (2026). Нажмите на акт, чтобы открыть его текст на <strong>lex.uz</strong>.</p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section class="panel" data-panel="law">
+    <div class="law-head">
+      <div class="lk">Центральный акт</div>
+      <h2>Закон Республики Узбекистан «Об электронном правительстве»</h2>
+      <p>№ ЗРУ-395 от 9 декабря 2015 года. Единственный акт, который на уровне закона определяет электронное правительство как систему и устанавливает правила её работы — точка сборки всех остальных норм темы.</p>
+      <a class="open" href="https://lex.uz/docs/2833855" target="_blank" rel="noopener">Открыть полный текст на lex.uz ↗</a>
+      <div class="chapters" id="chapters"></div>
+    </div>
+    <div class="subtabs" id="lawSubtabs"></div>
+    <div id="lawPanels"></div>
+  </section>
+
+  <section class="panel" data-panel="practice">
+    <p class="lede">Выберите ситуацию — и постройте «Правовую карту услуги»: разложите путь пользователя на шаги и для каждого шага укажите норму, которая его закрывает.</p>
+    <div class="sit-grid" id="sitGrid"></div>
+    <div id="sitDetail"></div>
+    <div class="map-wrap">
+      <div class="map-head">
+        <h3>Правовая карта услуги</h3>
+      </div>
+      <p class="map-sub" id="mapSub">Выберите ситуацию выше, чтобы начать.</p>
+      <div class="map-toolbar">
+        <button class="btn primary" id="addRow" type="button">+ добавить шаг</button>
+        <button class="btn" id="clearMap" type="button">Очистить карту</button>
+        <button class="btn" id="copyMap" type="button">Скопировать как текст</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="maptable">
+          <thead>
+            <tr>
+              <th class="rownum">№</th>
+              <th style="min-width:160px">Шаг услуги</th>
+              <th style="min-width:170px">Юридический вопрос</th>
+              <th style="min-width:200px">Норма (акт, №, дата, статус)</th>
+              <th style="min-width:130px">Кто отвечает</th>
+              <th style="min-width:150px">Риск / пробел</th>
+              <th class="rowdel"></th>
+            </tr>
+          </thead>
+          <tbody id="mapBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Акты приведены по официальным реквизитам; полные тексты — по ссылкам на lex.uz. Статус актов быстро меняется — перед цитированием в письменных работах сверяйте редакцию на дату обращения.</p>
+  <p style="margin-top:6px;">Курс «Цифровое правительство и электронная торговля» · Лекция 2 · «Нормативно-правовые основы развития системы «электронное правительство»»</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============== DATA ============== */
+const ERAS = [
+  {num:"I", range:"2002–2004", title:"Фундамент", color:"var(--navy)", items:[
+    {date:"11.12.2003", title:"«Об информатизации»", num:"Закон РУз № 560-II", status:"действует", link:"https://lex.uz/ru/docs/82956"},
+    {date:"11.12.2003", title:"«Об электронной цифровой подписи», 1-я ред.", num:"Закон РУз № 562-II", status:"заменён 2022", rep:true, link:"https://nrm.uz/contentf?doc=52202_zakon_respubliki_uzbekistan_ot_11_12_2003_g_n_562-ii_ob_elektronnoy_cifrovoy_podpisi&products=11_raschety_s_personalom"},
+    {date:"29.04.2004", title:"«Об электронном документообороте»", num:"Закон РУз № 611-II", status:"действует", link:"https://lex.uz/docs/165074"},
+    {date:"29.04.2004", title:"«Об электронной коммерции», 1-я ред.", num:"Закон РУз № 613-II", status:"заменён 2022", rep:true, link:"https://lex.uz/docs/165497"},
+  ]},
+  {num:"II", range:"2005–2014", title:"Первые сервисы", color:"var(--teal)", items:[
+    {date:"2012–2013", title:"Единый портал интерактивных госуслуг — my.gov.uz", num:"ПКМ (30.12.2012); тестовый запуск портала", status:"портал действует", link:"https://my.gov.uz/ru"},
+    {date:"04.02.2015", title:"Создание Министерства по развитию ИТ и коммуникаций", num:"Указ Президента № УП-4702", status:"институт действует", link:"https://lex.uz/ru/docs/2562755"},
+  ]},
+  {num:"III", range:"2015–2019", title:"Закон и реформа услуг", color:"var(--gold)", key:true, items:[
+    {date:"09.12.2015", title:"«Об электронном правительстве»", num:"Закон РУз № ЗРУ-395", status:"действует", key:true, link:"https://lex.uz/docs/2833855"},
+    {date:"17.12.2015", title:"Единая система идентификации пользователей", num:"ПКМ № 365", status:"проверить", link:"https://lex.uz/docs/2843013"},
+    {date:"15.09.2017", title:"Порядок оказания услуг через Единый портал", num:"ПКМ № 728", status:"проверить", link:"https://lex.uz/docs/3353198"},
+    {date:"12.12.2017", title:"Реформа национальной системы госуслуг", num:"Указ Президента № УП-5278", status:"проверить", link:"https://lex.uz/docs/3454458"},
+    {date:"08.01.2018", title:"«Об административных процедурах»", num:"Закон РУз № ЗРУ-457", status:"действует", link:"https://lex.uz/docs/3492203"},
+    {date:"02.07.2019", title:"«О персональных данных»", num:"Закон РУз № ЗРУ-547", status:"действует", link:"https://lex.uz/ru/pdfs/4396428"},
+  ]},
+  {num:"IV", range:"2020–2023", title:"Стратегия и digital by default", color:"var(--purple)", items:[
+    {date:"22.09.2020", title:"Идентификационные ID-карты", num:"Указ Президента № УП-6065", status:"проверить", link:"https://lex.uz/docs/5015117"},
+    {date:"05.10.2020", title:"Стратегия «Цифровой Узбекистан — 2030»", num:"Указ Президента № УП-6079", status:"действует", key:true, link:"https://lex.uz/ru/docs/5031048"},
+    {date:"15.04.2022", title:"«О кибербезопасности»", num:"Закон РУз № ЗРУ-764", status:"действует", link:"https://lex.uz/ru/docs/5960609"},
+    {date:"29.09.2022", title:"«Об электронной коммерции», новая ред.", num:"Закон РУз № ЗРУ-792", status:"действует", link:"https://lex.uz/uz/docs/6213428"},
+    {date:"12.10.2022", title:"«Об электронной цифровой подписи», новая ред.", num:"Закон РУз № ЗРУ-793", status:"действует", link:"https://lex.uz/ru/docs/6234906"},
+    {date:"24.05.2023", title:"«О мерах по эффективной организации государственного управления в сфере цифровых технологий в рамках административных реформ»", num:"Указ Президента № УП-76 · принцип «Digital by default»", status:"действует", link:"https://lex.uz/docs/6472530"},
+    {date:"14.09.2023", title:"«О дополнительных мерах по улучшению рейтинга Республики Узбекистан в отчёте ООН „Исследование электронного правительства“»", num:"Постановление Президента № ПП-308 · цель — топ-30 ООН", status:"действует", link:"https://lex.uz/uz/docs/6612610"},
+  ]},
+  {num:"V", range:"2024–2026", title:"Цифровое правительство", color:"var(--green)", key:true, items:[
+    {date:"16.09.2025", title:"Ускорение внедрения цифровых технологий в регионах, сферах и отраслях республики", num:"Постановление Президента РУз № ПП-286", status:"новый акт", isNew:true, link:"https://lex.uz/ru/docs/7730359"},
+    {date:"08.07.2026", title:"Развитие системы «Цифровое правительство»: единая цифровая платформа", num:"Қарор Президента РУз № ПҚ-257 (рус. ПП-257)", status:"новый акт", isNew:true, key:true, link:"https://lex.uz/docs/8317585"},
+  ]},
+];
+
+const CHAPTERS = [
+  "Гл. 1. Общие положения (ст. 1–12)",
+  "Гл. 2. Государственное регулирование (ст. 13–17)",
+  "Гл. 3. Оказание электронных госуслуг (ст. 18–24)",
+  "Гл. 4. Организация функционирования (ст. 25–29)",
+  "Гл. 5. Заключительные положения (ст. 30–34)",
+];
+
+const LAW = {
+  concepts: [
+    {t:"Электронное правительство", d:"Система организационно-правовых мер и технических средств, направленная на обеспечение деятельности государственных органов по оказанию государственных услуг."},
+    {t:"Электронная государственная услуга", d:"Государственная услуга, оказываемая с применением информационно-коммуникационных технологий."},
+    {t:"Интерактивная услуга", d:"Услуга, оказываемая путём двустороннего электронного взаимодействия между заявителем и органом: заявитель подаёт запрос — орган отвечает."},
+    {t:"Информационная услуга", d:"Услуга, удовлетворяющая информационные потребности путём публикации (получения) информации."},
+    {t:"Единые идентификаторы", d:"Уникальные коды, присваиваемые каждому физическому и юридическому лицу для однозначной идентификации в государственных системах."},
+  ],
+  principles: [
+    {t:"Открытость и прозрачность деятельности органов", d:"Снижает информационную асимметрию: бизнес видит регламент, сроки и статус заявления."},
+    {t:"Равный доступ заявителей к электронным услугам", d:"Защищает от цифровой дискриминации: услуга доступна не только «продвинутым» пользователям."},
+    {t:"Оказание услуг по принципу «одного окна»", d:"Сокращает издержки взаимодействия: одна точка входа вместо обхода ведомств."},
+    {t:"Унификация документов органов", d:"Устраняет разнобой форм и требований."},
+    {t:"Использование единых идентификаторов", d:"Делает возможным автоматический обмен данными и проверку заявителя."},
+    {t:"Постоянное совершенствование порядка оказания услуг", d:"Закрепляет обязанность улучшать процессы, а не «заморозить» их."},
+    {t:"Информационная безопасность и кибербезопасность", d:"Формирует доверие: без защиты данных пользователи не пойдут в цифровые каналы."},
+  ],
+  roles: [
+    {t:"Кабинет Министров", items:["Обеспечивает единую государственную политику","Утверждает программы развития","Определяет порядок ведения Единого реестра электронных услуг","Утверждает методику оценки качества услуг"]},
+    {t:"Уполномоченный орган (профильное министерство)", items:["Реализует государственную политику","Координирует деятельность органов","Обеспечивает функционирование инфраструктуры","Формирует Единый реестр услуг","Разрабатывает меры информационной безопасности"]},
+    {t:"Государственные органы", items:["Разрабатывают и утверждают регламенты своих услуг","Создают условия доступа для лиц с ограничениями","Обеспечивают работу своих веб-сайтов","Принимают меры безопасности информационных систем"]},
+  ],
+  rights: ["Получать услугу своевременно в соответствии с регламентом","Получать информацию о ходе оказания услуги","Обжаловать решения и действия органов в установленном порядке","Участвовать в оценке качества услуг","Вносить предложения по совершенствованию порядка оказания услуг"],
+  responsibility: "За нарушение законодательства об электронном правительстве предусмотрена ответственность в порядке, установленном законодательством Республики Узбекистан.",
+};
+
+const SITUATIONS = [
+  {id:"ip", n:1, title:"«ИП за 15 минут»", teaser:"Онлайн-регистрация и выход на маркетплейс без визита в госорган",
+    situation:"Предприниматель хочет онлайн зарегистрировать ИП и в тот же день открыть магазин на маркетплейсе — без единого визита в госорган.",
+    task:"Разложите путь на шаги: идентификация → подача заявления → подпись → получение документа → продажа через маркетплейс. Для каждого шага укажите норму.",
+    where:[["Закон об ЭЦП (ЗРУ-793)","https://lex.uz/ru/docs/6234906"],["УП-6065 — ID-карты","https://lex.uz/docs/5015117"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон об эл. коммерции (ЗРУ-792)","https://lex.uz/uz/docs/6213428"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"]],
+    trap:"Юридические лица и ИП идентифицируются иначе, чем физические лица. Проверьте, какие действия требуют подписи, а какие — только идентификации."},
+  {id:"signature", n:2, title:"«Подпись на смартфоне»", teaser:"Договор и обращение в госорган подписаны с телефона",
+    situation:"Гражданин заключает договор с компанией и подаёт заявление в госорган, подписав оба документа электронной подписью со смартфона.",
+    task:"Определите: когда электронный документ равнозначен бумажному? Какой вид подписи допустим для договора, а какой — для обращения в госорган?",
+    where:[["Закон об ЭЦП, новая ред. (ЗРУ-793)","https://lex.uz/ru/docs/6234906"],["Закон об эл. документообороте","https://lex.uz/docs/165074"]],
+    trap:"Закон 2003 года об ЭЦП больше не действует. Не смешивайте нормы старой и новой редакций."},
+  {id:"leak", n:3, title:"«Утечка из госсервиса»", teaser:"Данные 100 тысяч человек попали к подрядчику-разработчику",
+    situation:"Из государственной информационной системы утекли персональные данные 100 тысяч человек. Часть данных передана подрядчику-разработчику.",
+    task:"Установите: кто является оператором данных? Какие обязанности он нарушил? К какому контуру относится система и куда гражданину жаловаться?",
+    where:[["Закон о персональных данных (ЗРУ-547)","https://lex.uz/ru/pdfs/4396428"],["Закон о кибербезопасности (ЗРУ-764)","https://lex.uz/ru/docs/5960609"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["Закон об админ. процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"]],
+    trap:"Ответственность оператора и подрядчика не совпадает. Не забудьте про права самого пострадавшего гражданина."},
+  {id:"proactive", n:4, title:"«Услуга, которая приходит сама»", teaser:"Пособие назначается автоматически, без заявления родителей",
+    situation:"Государство хочет, чтобы при рождении ребёнка пособие назначалось автоматически, без заявления родителей, на основании данных из нескольких ведомственных систем.",
+    task:"Покажите, на каких нормах можно построить проактивную услугу. Какие барьеры мешают обмену данными без заявления? Где нужно согласие гражданина?",
+    where:[["ПП-257 — единая платформа, once-only","https://lex.uz/docs/8317585"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["ПКМ № 365 — идентификация","https://lex.uz/docs/2843013"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об админ. процедурах","https://lex.uz/docs/3492203"]],
+    trap:"«Удобно» не значит «законно»: автоматическая обработка данных требует правового основания и определённой цели."},
+  {id:"ai", n:5, title:"«Виртуальный ассистент хокима»", teaser:"ИИ формирует рекомендации для руководителя района",
+    situation:"В рамках программы «Цифровой хокимият» ИИ-ассистент формирует рекомендации для руководителя района: где выделять ресурсы, какие семьи нуждаются в поддержке.",
+    task:"Ответьте: кто несёт ответственность за решение, принятое на основе рекомендации алгоритма? Как гражданин может оспорить решение? Что должно быть закреплено в норме?",
+    where:[["ПП-257 — Цифровой хокимият, ИИ-модуль","https://lex.uz/docs/8317585"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об админ. процедурах","https://lex.uz/docs/3492203"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
+    trap:"Рекомендация алгоритма — не решение. Определите, где заканчивается «подсказка» и начинается «решение органа»."},
+  {id:"paid", n:6, title:"«Платные услуги через банк и оператора»", teaser:"Банки и операторы связи оказывают платные e-услуги",
+    situation:"Банки и мобильные операторы получили право оказывать платные электронные услуги через Единый портал. Компания-оператор хочет предложить пакет платных услуг подписчикам.",
+    task:"Определите правовые риски: защита данных пользователей, равный доступ к услугам, ответственность за качество, коммерческая и публичная роль оператора.",
+    where:[["ПП-286 — платные услуги через портал","https://lex.uz/ru/docs/7730359"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об эл. коммерции (ЗРУ-792)","https://lex.uz/uz/docs/6213428"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
+    trap:"Один и тот же оператор — и коммерческая компания, и участник государственной системы. Какие нормы применяются к какой роли?"},
+];
+
+const EXAMPLE_ROW = ["Пример: идентификация пользователя","Чем подтверждается личность?","ПКМ № 365 от 17.12.2015; проверить статус на lex.uz","Оператор системы идентификации","Сбой при идентификации юрлица"];
+
+/* ============== STATE ============== */
+let state = {tab:"stages", lawTab:"concepts", situationId:null};
+try{
+  const saved = JSON.parse(localStorage.getItem("legalnav-state") || "null");
+  if(saved && typeof saved === "object") state = Object.assign(state, saved);
+}catch(e){}
+
+function saveState(){
+  try{ localStorage.setItem("legalnav-state", JSON.stringify(state)); }catch(e){}
+}
+
+/* ============== HELPERS ============== */
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.dataset.show = "true";
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>{ t.dataset.show = "false"; }, 1800);
+}
+
+/* ============== RENDER: TABS ============== */
+function renderTabs(){
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.dataset.active = String(b.dataset.tab === state.tab);
+  });
+  document.querySelectorAll(".panel").forEach(p=>{
+    p.dataset.open = String(p.dataset.panel === state.tab);
+  });
+}
+document.getElementById("tabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".tab-btn");
+  if(!btn) return;
+  state.tab = btn.dataset.tab;
+  saveState();
+  renderTabs();
+});
+
+/* ============== RENDER: STAGES BOARD ============== */
+function renderBoard(){
+  const board = document.getElementById("board");
+  board.innerHTML = ERAS.map(era => `
+    <div class="era-col">
+      <div class="era-head" style="--era-c:${era.color}; background:${era.color}">
+        <div class="num">ЭТАП ${era.num}</div>
+        <h3>${esc(era.title)}</h3>
+        <div class="range">${esc(era.range)}</div>
+      </div>
+      <div class="era-body">
+        ${era.items.map(it => `
+          <a class="act-link${it.key ? " keyact" : ""}" style="--era-c:${era.color}" href="${it.link}" target="_blank" rel="noopener">
+            <div class="act-top">
+              <span class="act-date">${esc(it.date)}</span>
+              <span class="ext">↗</span>
+            </div>
+            <span class="act-title">${it.key ? "★ " : ""}${esc(it.title)}</span>
+            <span class="act-num">${esc(it.num)}</span>
+            <span class="act-status${it.rep ? " rep" : ""}${it.isNew ? " new" : ""}">${esc(it.status)}</span>
+          </a>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ============== RENDER: LAW TAB ============== */
+function renderChapters(){
+  document.getElementById("chapters").innerHTML = CHAPTERS.map(c => `<span class="chapter-chip">${esc(c)}</span>`).join("");
+}
+
+const LAW_TABS = [
+  {id:"concepts", label:"Ключевые понятия"},
+  {id:"principles", label:"Принципы"},
+  {id:"roles", label:"Кто за что отвечает"},
+  {id:"rights", label:"Права заявителя и ответственность"},
+];
+
+function renderLawSubtabs(){
+  document.getElementById("lawSubtabs").innerHTML = LAW_TABS.map(t => `
+    <button class="subtab-btn" data-lawtab="${t.id}" data-active="${String(state.lawTab === t.id)}">${esc(t.label)}</button>
+  `).join("");
+}
+document.getElementById("lawSubtabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".subtab-btn");
+  if(!btn) return;
+  state.lawTab = btn.dataset.lawtab;
+  saveState();
+  renderLawSubtabs();
+  renderLawPanels();
+});
+
+function renderLawPanels(){
+  const wrap = document.getElementById("lawPanels");
+  wrap.innerHTML = `
+    <div class="subpanel" data-key="concepts" data-open="${state.lawTab === "concepts"}">
+      ${LAW.concepts.map(c => `<div class="def-card"><h4>${esc(c.t)}</h4><p>${esc(c.d)}</p></div>`).join("")}
+    </div>
+    <div class="subpanel" data-key="principles" data-open="${state.lawTab === "principles"}">
+      ${LAW.principles.map(c => `<div class="def-card"><h4>${esc(c.t)}</h4><p>${esc(c.d)}</p></div>`).join("")}
+    </div>
+    <div class="subpanel" data-key="roles" data-open="${state.lawTab === "roles"}">
+      ${LAW.roles.map(r => `<div class="role-card"><h4>${esc(r.t)}</h4><ul>${r.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`).join("")}
+    </div>
+    <div class="subpanel" data-key="rights" data-open="${state.lawTab === "rights"}">
+      <div class="rights-card">
+        <h4>Заявитель вправе:</h4>
+        <ol>${LAW.rights.map(r=>`<li>${esc(r)}</li>`).join("")}</ol>
+        <div class="resp-box"><strong>Ответственность.</strong> ${esc(LAW.responsibility)}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============== RENDER: PRACTICE TAB ============== */
+function renderSitGrid(){
+  document.getElementById("sitGrid").innerHTML = SITUATIONS.map(s => `
+    <button class="sit-card" data-sit="${s.id}" data-active="${String(state.situationId === s.id)}" type="button">
+      <span class="sn">Карточка ${s.n}</span>
+      <h4>${esc(s.title)}</h4>
+      <p>${esc(s.teaser)}</p>
+    </button>
+  `).join("");
+}
+document.getElementById("sitGrid").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".sit-card");
+  if(!btn) return;
+  selectSituation(btn.dataset.sit);
+});
+
+function renderSitDetail(){
+  const wrap = document.getElementById("sitDetail");
+  const s = SITUATIONS.find(x => x.id === state.situationId);
+  if(!s){ wrap.innerHTML = ""; return; }
+  wrap.innerHTML = `
+    <div class="sit-detail">
+      <div class="sit-detail-head"><span class="sn">Карточка ${s.n}</span><h3>${esc(s.title)}</h3></div>
+      <div class="sit-row"><div class="lbl">Ситуация</div><p>${esc(s.situation)}</p></div>
+      <div class="sit-row"><div class="lbl">Задание</div><p>${esc(s.task)}</p></div>
+      <div class="sit-row"><div class="lbl">Где искать</div>
+        <div class="chips">${s.where.map(([t,l]) => `<a class="chip-link" href="${l}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join("")}</div>
+      </div>
+      <div class="sit-row"><div class="lbl">Ловушка</div><div class="trap">${esc(s.trap)}</div></div>
+    </div>
+  `;
+}
+
+function selectSituation(id){
+  state.situationId = id;
+  saveState();
+  renderSitGrid();
+  renderSitDetail();
+  loadMap(id);
+  document.getElementById("mapSub").textContent =
+    "Ситуация: «" + SITUATIONS.find(x=>x.id===id).title + "». Заполняйте норму, ответственного и риск по каждому шагу — минимум 5 шагов.";
+}
+
+/* ---- legal map table ---- */
+function mapStorageKey(id){ return "legalnav-map-" + id; }
+function emptyRows(){ return [["","","","",""], ["","","","",""], ["","","","",""], ["","","","",""], ["","","","",""]]; }
+
+function loadMap(id){
+  let rows = null;
+  try{ rows = JSON.parse(localStorage.getItem(mapStorageKey(id)) || "null"); }catch(e){}
+  if(!Array.isArray(rows) || !rows.length){
+    rows = emptyRows();
+  }
+  renderMap(rows);
+}
+
+function saveMap(rows){
+  if(!state.situationId) return;
+  try{ localStorage.setItem(mapStorageKey(state.situationId), JSON.stringify(rows)); }catch(e){}
+}
+
+function currentRows(){
+  const rows = [];
+  document.querySelectorAll("#mapBody tr:not(.example)").forEach(tr=>{
+    const cells = Array.from(tr.querySelectorAll("td[contenteditable]")).map(td => td.textContent.trim());
+    rows.push(cells);
+  });
+  return rows;
+}
+
+function renderMap(rows){
+  const body = document.getElementById("mapBody");
+  const cols = ["step","q","norm","who","risk"];
+  const phs = ["напр. Идентификация пользователя","напр. Чем подтверждается личность?","напр. Акт, №, дата, статус","напр. Оператор системы","напр. Риск / пробел"];
+  let html = `<tr class="example">
+    <td class="rownum">•</td>
+    ${EXAMPLE_ROW.map(v => `<td>${esc(v)}</td>`).join("")}
+    <td class="rowdel"></td>
+  </tr>`;
+  rows.forEach((r, i) => {
+    html += `<tr>
+      <td class="rownum mono">${i+1}</td>
+      ${cols.map((c,ci) => `<td contenteditable="true" data-ph="${phs[ci]}">${esc(r[ci]||"")}</td>`).join("")}
+      <td class="rowdel"><button type="button" data-del="${i}" title="Удалить шаг">✕</button></td>
+    </tr>`;
+  });
+  body.innerHTML = html;
+}
+
+document.getElementById("mapBody").addEventListener("input", ()=>{
+  saveMap(currentRows());
+});
+document.getElementById("mapBody").addEventListener("click", (e)=>{
+  const del = e.target.closest("[data-del]");
+  if(!del) return;
+  const rows = currentRows();
+  rows.splice(Number(del.dataset.del), 1);
+  renderMap(rows);
+  saveMap(rows);
+});
+document.getElementById("addRow").addEventListener("click", ()=>{
+  if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
+  const rows = currentRows();
+  rows.push(["","","","",""]);
+  renderMap(rows);
+  saveMap(rows);
+});
+document.getElementById("clearMap").addEventListener("click", ()=>{
+  if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
+  const rows = emptyRows();
+  renderMap(rows);
+  saveMap(rows);
+  showToast("Карта очищена");
+});
+document.getElementById("copyMap").addEventListener("click", async ()=>{
+  if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
+  const s = SITUATIONS.find(x=>x.id===state.situationId);
+  const rows = currentRows();
+  const header = ["Шаг услуги","Юридический вопрос","Норма","Кто отвечает","Риск/пробел"];
+  let text = "Правовая карта услуги — " + s.title + "\n\n";
+  rows.forEach((r,i)=>{
+    text += (i+1) + ". " + header.map((h,ci)=> h + ": " + (r[ci]||"—")).join(" | ") + "\n";
+  });
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast("Скопировано в буфер обмена");
+  }catch(e){
+    showToast("Не удалось скопировать — выделите текст вручную");
+  }
+});
+
+/* ============== THEME ============== */
+(function initTheme(){
+  const btn = document.getElementById("themeToggle");
+  const root = document.documentElement;
+  try{
+    const saved = localStorage.getItem("legalnav-theme");
+    if(saved) root.setAttribute("data-theme", saved);
+  }catch(e){}
+  btn.addEventListener("click", ()=>{
+    const current = root.getAttribute("data-theme");
+    const isDark = current ? current === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = isDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try{ localStorage.setItem("legalnav-theme", next); }catch(e){}
+  });
+})();
+
+/* ============== BOOT ============== */
+renderTabs();
+renderBoard();
+renderChapters();
+renderLawSubtabs();
+renderLawPanels();
+renderSitGrid();
+if(state.situationId){
+  renderSitDetail();
+  loadMap(state.situationId);
+  document.getElementById("mapSub").textContent =
+    "Ситуация: «" + SITUATIONS.find(x=>x.id===state.situationId).title + "». Заполняйте норму, ответственного и риск по каждому шагу — минимум 5 шагов.";
+} else {
+  renderMap(emptyRows());
+}
+})();
+</script>
+
+</body>
+</html>
