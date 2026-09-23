@@ -1,10 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Юридический навигатор</title>
-<meta name="description" content="Интерактивный инструмент к Лекции 2: пять этапов правовой базы со ссылками на lex.uz, разбор Закона «Об электронном правительстве» и практикум «Правовая карта услуги».">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -210,7 +209,36 @@
     padding:8px 13px; font-size:.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
   }
   .btn.primary{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .btn.accent{background:var(--teal); border-color:var(--teal); color:#fff;}
   .btn:hover{border-color:var(--purple);}
+  .btn.accent:hover{border-color:var(--teal);}
+  .btn:disabled{opacity:.6; cursor:default;}
+  .submit-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 8px;}
+  .txt-input{
+    border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--ink);
+    padding:8px 12px; font-size:.82rem; min-width:170px; flex:1 1 170px;
+  }
+  .txt-input:focus{outline:none; border-color:var(--teal);}
+  .submit-hint{font-size:.78rem; color:var(--ink-faint); margin:0 0 14px;}
+  .submit-hint[data-ok="true"]{color:var(--green);}
+
+  .present-view{margin-top:22px; padding-top:18px; border-top:2px dashed var(--border);}
+  .present-view[hidden]{display:none;}
+  .present-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .present-head-left{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .present-tag{font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; background:var(--teal-bg); color:var(--teal-ink); border-radius:99px; padding:3px 10px; font-weight:700; white-space:nowrap;}
+  .present-head h4{font-size:1.1rem; color:var(--ink);}
+  .present-step{background:var(--surface-2); border:1px solid var(--border-soft); border-radius:12px; padding:16px 18px; margin-bottom:12px;}
+  .present-step-n{font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--teal); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
+  .present-step-title{font-size:1.05rem; font-weight:700; color:var(--ink); margin-bottom:10px; line-height:1.3;}
+  .present-step dl{display:grid; grid-template-columns:150px 1fr; gap:6px 12px; margin:0;}
+  .present-step dt{font-size:.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em; padding-top:1px;}
+  .present-step dd{margin:0; font-size:.92rem; color:var(--ink-soft); line-height:1.4;}
+  @media (max-width:560px){
+    .present-step dl{grid-template-columns:1fr;}
+    .present-step dt{margin-top:8px;}
+    .present-step dt:first-child{margin-top:0;}
+  }
   .maptable{width:100%; border-collapse:collapse; font-size:.83rem;}
   .maptable thead th{
     text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);
@@ -221,7 +249,6 @@
     padding:8px; border-radius:6px; min-width:90px; outline:none;
   }
   .maptable td[contenteditable="true"]:focus{background:var(--surface-2);}
-  .maptable td[contenteditable="true"]:empty:before{content:attr(data-ph); color:var(--ink-faint); font-style:italic;}
   .maptable tr.example td{color:var(--ink-faint); font-style:italic;}
   .rownum{font-family:'JetBrains Mono',monospace; color:var(--ink-faint); text-align:center; width:26px;}
   .rowdel{width:30px; text-align:center;}
@@ -238,6 +265,8 @@
 </style>
 </head>
 <body>
+
+
 <div class="appbar">
   <div class="appbar-top">
     <div>
@@ -285,6 +314,12 @@
         <button class="btn" id="clearMap" type="button">Очистить карту</button>
         <button class="btn" id="copyMap" type="button">Скопировать как текст</button>
       </div>
+      <div class="submit-row">
+        <input type="text" id="studentName" class="txt-input" placeholder="ФИО студента" autocomplete="off">
+        <input type="text" id="studentGroup" class="txt-input" placeholder="Группа (необязательно)" autocomplete="off" style="flex:0 1 160px;">
+        <button class="btn accent" id="submitCase" type="button">💾 Сохранить для презентации и отправить</button>
+      </div>
+      <p class="submit-hint" id="submitHint"></p>
       <div style="overflow-x:auto;">
         <table class="maptable">
           <thead>
@@ -301,6 +336,7 @@
           <tbody id="mapBody"></tbody>
         </table>
       </div>
+      <div class="present-view" id="presentView" hidden></div>
     </div>
   </section>
 </main>
@@ -386,39 +422,57 @@ const LAW = {
 };
 
 const SITUATIONS = [
-  {id:"ip", n:1, title:"«ИП за 15 минут»", teaser:"Онлайн-регистрация и выход на маркетплейс без визита в госорган",
+  {id:"spravka", n:1, title:"«Справка онлайн вместо очереди»", teaser:"Справка о регистрации записи акта о рождении — без похода в ЗАГС",
+    situation:"Гражданину нужна справка о регистрации записи акта о рождении — например, для оформления детского пособия или поступления ребёнка в школу. Раньше за ней нужно было лично идти в отдел ЗАГС, теперь он хочет получить её через единый портал.",
+    task:"Разложите путь на шаги: вход/идентификация → выбор услуги на my.gov.uz → подача запроса → получение справки в электронном виде. Для каждого шага укажите норму.",
+    where:[["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["УП-6065 — ID-карты","https://lex.uz/docs/5015117"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"]],
+    trap:"Электронная справка должна быть равнозначна бумажной — проверьте, чем именно это подтверждается (какая норма, какая подпись), а не просто «выглядит как документ».",
+    example:["Справка о регистрации записи акта о рождении","Нужен ли личный визит в ЗАГС, если запись уже есть в системе?","ПКМ № 728 от 15.09.2017 — Единый портал, действует","Единый портал / отдел ЗАГС","Портал требует более сложную идентификацию, чем нужно для простой справки"]},
+  {id:"ip", n:2, title:"«Открыть своё дело за один день»", teaser:"Онлайн-регистрация ИП и выход на маркетплейс без визита в госорган",
     situation:"Предприниматель хочет онлайн зарегистрировать ИП и в тот же день открыть магазин на маркетплейсе — без единого визита в госорган.",
     task:"Разложите путь на шаги: идентификация → подача заявления → подпись → получение документа → продажа через маркетплейс. Для каждого шага укажите норму.",
     where:[["Закон об ЭЦП (ЗРУ-793)","https://lex.uz/ru/docs/6234906"],["УП-6065 — ID-карты","https://lex.uz/docs/5015117"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон об эл. коммерции (ЗРУ-792)","https://lex.uz/uz/docs/6213428"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"]],
-    trap:"Юридические лица и ИП идентифицируются иначе, чем физические лица. Проверьте, какие действия требуют подписи, а какие — только идентификации."},
-  {id:"signature", n:2, title:"«Подпись на смартфоне»", teaser:"Договор и обращение в госорган подписаны с телефона",
-    situation:"Гражданин заключает договор с компанией и подаёт заявление в госорган, подписав оба документа электронной подписью со смартфона.",
-    task:"Определите: когда электронный документ равнозначен бумажному? Какой вид подписи допустим для договора, а какой — для обращения в госорган?",
-    where:[["Закон об ЭЦП, новая ред. (ЗРУ-793)","https://lex.uz/ru/docs/6234906"],["Закон об эл. документообороте","https://lex.uz/docs/165074"]],
-    trap:"Закон 2003 года об ЭЦП больше не действует. Не смешивайте нормы старой и новой редакций."},
-  {id:"leak", n:3, title:"«Утечка из госсервиса»", teaser:"Данные 100 тысяч человек попали к подрядчику-разработчику",
-    situation:"Из государственной информационной системы утекли персональные данные 100 тысяч человек. Часть данных передана подрядчику-разработчику.",
-    task:"Установите: кто является оператором данных? Какие обязанности он нарушил? К какому контуру относится система и куда гражданину жаловаться?",
-    where:[["Закон о персональных данных (ЗРУ-547)","https://lex.uz/ru/pdfs/4396428"],["Закон о кибербезопасности (ЗРУ-764)","https://lex.uz/ru/docs/5960609"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["Закон об админ. процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"]],
-    trap:"Ответственность оператора и подрядчика не совпадает. Не забудьте про права самого пострадавшего гражданина."},
-  {id:"proactive", n:4, title:"«Услуга, которая приходит сама»", teaser:"Пособие назначается автоматически, без заявления родителей",
-    situation:"Государство хочет, чтобы при рождении ребёнка пособие назначалось автоматически, без заявления родителей, на основании данных из нескольких ведомственных систем.",
-    task:"Покажите, на каких нормах можно построить проактивную услугу. Какие барьеры мешают обмену данными без заявления? Где нужно согласие гражданина?",
-    where:[["ПП-257 — единая платформа, once-only","https://lex.uz/docs/8317585"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["ПКМ № 365 — идентификация","https://lex.uz/docs/2843013"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об админ. процедурах","https://lex.uz/docs/3492203"]],
-    trap:"«Удобно» не значит «законно»: автоматическая обработка данных требует правового основания и определённой цели."},
-  {id:"ai", n:5, title:"«Виртуальный ассистент хокима»", teaser:"ИИ формирует рекомендации для руководителя района",
-    situation:"В рамках программы «Цифровой хокимият» ИИ-ассистент формирует рекомендации для руководителя района: где выделять ресурсы, какие семьи нуждаются в поддержке.",
-    task:"Ответьте: кто несёт ответственность за решение, принятое на основе рекомендации алгоритма? Как гражданин может оспорить решение? Что должно быть закреплено в норме?",
-    where:[["ПП-257 — Цифровой хокимият, ИИ-модуль","https://lex.uz/docs/8317585"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об админ. процедурах","https://lex.uz/docs/3492203"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
-    trap:"Рекомендация алгоритма — не решение. Определите, где заканчивается «подсказка» и начинается «решение органа»."},
-  {id:"paid", n:6, title:"«Платные услуги через банк и оператора»", teaser:"Банки и операторы связи оказывают платные e-услуги",
-    situation:"Банки и мобильные операторы получили право оказывать платные электронные услуги через Единый портал. Компания-оператор хочет предложить пакет платных услуг подписчикам.",
-    task:"Определите правовые риски: защита данных пользователей, равный доступ к услугам, ответственность за качество, коммерческая и публичная роль оператора.",
-    where:[["ПП-286 — платные услуги через портал","https://lex.uz/ru/docs/7730359"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"],["Закон об эл. коммерции (ЗРУ-792)","https://lex.uz/uz/docs/6213428"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
-    trap:"Один и тот же оператор — и коммерческая компания, и участник государственной системы. Какие нормы применяются к какой роли?"},
+    trap:"Юридические лица и ИП идентифицируются иначе, чем физические лица. Проверьте, какие действия требуют подписи, а какие — только идентификации.",
+    example:["Идентификация заявителя на портале","Кто регистрирует ИП — гражданин или будущий предприниматель?","УП-6065 от 22.09.2020 — ID-карта, действует","Оператор Единого портала","Ошибка идентификации: физлицо вместо будущего ИП"]},
+  {id:"login", n:3, title:"«Не могу войти на портал»", teaser:"SMS-код не приходит, ID-карта не читается — как войти в личный кабинет",
+    situation:"Гражданин пытается войти в личный кабинет на едином портале, чтобы подать заявление, но подтверждение личности не проходит: SMS-код не приходит, карта не считывается, ЭЦП просит переустановить.",
+    task:"Разберите: какие способы идентификации законны для входа на портал? Чем вход «просто посмотреть информацию» отличается от входа для подписания заявления?",
+    where:[["УП-6065 — ID-карты","https://lex.uz/docs/5015117"],["Закон об ЭЦП (ЗРУ-793)","https://lex.uz/ru/docs/6234906"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
+    trap:"Не всякий вход на портал требует одинакового уровня идентификации: посмотреть статус заявления — не то же самое, что подписать новое.",
+    example:["Попытка входа по SMS-коду","Является ли SMS-код надёжным способом идентификации?","УП-6065 от 22.09.2020 — действует","Оператор Единого портала","SMS не приходит из-за сбоя оператора связи"]},
+  {id:"shtraf", n:4, title:"«Штраф пришёл на телефон»", teaser:"Уведомление о штрафе через приложение — оплатить или оспорить онлайн",
+    situation:"Гражданину пришло уведомление о штрафе (например, за нарушение ПДД) через мобильное приложение или портал. Он хочет либо оплатить его онлайн, либо оспорить, если не согласен.",
+    task:"Шаги: получение уведомления → способ оплаты или обжалования → срок обжалования → куда жаловаться, если не согласен. Для каждого шага укажите норму.",
+    where:[["Закон об административных процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон о персональных данных","https://lex.uz/ru/pdfs/4396428"]],
+    trap:"Электронное уведомление должно быть доставлено доказуемым способом — если гражданин не видел уведомление, срок обжалования не может истечь «незаметно».",
+    example:["Получение уведомления о штрафе через приложение","Является ли push-уведомление надлежащим способом извещения?","ЗРУ-457 — Закон об административных процедурах, действует","Орган, вынесший штраф","Уведомление не было замечено — срок обжалования под вопросом"]},
+  {id:"obrashenie", n:5, title:"«Госорган не ответил на обращение»", teaser:"Электронное обращение отправлено, ответа нет — что дальше",
+    situation:"Гражданин подал электронное обращение в органы власти через портал и не получил ответа в установленный срок.",
+    task:"Установите: в какой срок госорган обязан ответить, куда обращаться дальше, какие права есть у заявителя в этой ситуации.",
+    where:[["Закон об административных процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"]],
+    trap:"«Не ответили» и «отказали» — разные ситуации с разными правами заявителя. Не путайте молчание госоргана с отказом.",
+    example:["Подача электронного обращения через портал","Какая форма обращения считается официально поданной?","ЗРУ-395 — Закон «Об электронном правительстве», действует","Единый портал / орган-адресат","Обращение не зарегистрировано системой"]},
+  {id:"leak", n:6, title:"«Утечка личных данных»", teaser:"Из приложения, которым гражданин пользуется каждый день, «утекли» его данные",
+    situation:"Из мобильного приложения или госсистемы, которой гражданин пользуется каждый день (портал, банк, налоговая), «утекли» его персональные данные.",
+    task:"Разберите: кто является оператором этих данных, что он обязан был сделать для их защиты, и куда пострадавшему гражданину обращаться.",
+    where:[["Закон о персональных данных (ЗРУ-547)","https://lex.uz/ru/pdfs/4396428"],["Закон о кибербезопасности (ЗРУ-764)","https://lex.uz/ru/docs/5960609"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["Закон об административных процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"]],
+    trap:"Гражданин часто не знает, кто на самом деле обрабатывает его данные — приложение, банк или подрядчик-разработчик. Определите оператора точно, а не «кого-то из них».",
+    example:["Обнаружение факта утечки данных","Обязан ли оператор сам уведомить пользователей?","ЗРУ-764 — Закон о кибербезопасности, действует","Оператор приложения/системы","Пользователь узнал об утечке из СМИ, а не от оператора"]},
+  {id:"subsidy", n:7, title:"«Субсидия на ипотечный кредит»", teaser:"Заявление на государственную субсидию для погашения ипотеки — через портал",
+    situation:"Подача заявления на получение государственной субсидии на ипотечный кредит.",
+    task:"Разложите путь на шаги: подача заявления на субсидию → проверка данных о доходах и составе семьи → решение о назначении → перечисление субсидии банку. Для каждого шага укажите норму.",
+    where:[["ПП-257 — единая платформа, once-only","https://lex.uz/docs/8317585"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"],["Закон об административных процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"],["Закон о персональных данных (ЗРУ-547)","https://lex.uz/ru/pdfs/4396428"]],
+    trap:"Принцип «однократности» (once-only) разрешает ведомствам обмениваться уже поданными данными, но не отменяет права заявителя знать, кто и зачем обрабатывает его данные.",
+    example:["Подача заявления на субсидию через портал","Знает ли заявитель, что часть данных получена автоматически?","ПП-257 от 08.07.2026 — принцип once-only","Оператор платформы / орган соцзащиты","Заявитель не уведомлён о принципе однократности"]},
+  {id:"idcard", n:8, title:"«Получить новую ID-карту»", teaser:"Часть шагов — онлайн, часть — обязательно лично",
+    situation:"У гражданина истёк срок действия ID-карты (или карта утеряна). Он хочет сделать максимум шагов онлайн и приехать в органы внутренних дел только за готовым документом.",
+    task:"Разложите путь на шаги: подача заявления → идентификация личности → биометрия/фото → изготовление карты → получение. Для каждого шага укажите норму и отметьте, какие шаги можно пройти онлайн, а какие — только лично.",
+    where:[["УП-6065 — идентификационные ID-карты","https://lex.uz/docs/5015117"],["ПКМ № 728 — Единый портал","https://lex.uz/docs/3353198"],["Закон об административных процедурах (ЗРУ-457)","https://lex.uz/docs/3492203"],["Закон «Об электронном правительстве»","https://lex.uz/docs/2833855"]],
+    trap:"Не все шаги можно пройти дистанционно: биометрические данные (фото, отпечатки) всё ещё требуют личной явки. Не путайте «услуга доступна через портал» с «услугу можно оформить полностью онлайн».",
+    example:["Подача заявления на выдачу/замену ID-карты","Заменяет ли электронная подача личную явку целиком?","УП-6065 от 22.09.2020 — действует","Орган внутренних дел / Единый портал","Заявитель считает, что вся процедура пройдёт онлайн"]},
 ];
 
-const EXAMPLE_ROW = ["Пример: идентификация пользователя","Чем подтверждается личность?","ПКМ № 365 от 17.12.2015 — действует (см. lex.uz)","Оператор системы идентификации","Сбой при идентификации юрлица"];
+const DEFAULT_EXAMPLE = ["Выберите ситуацию выше","Пример появится здесь","—","—","—"];
 
 /* ============== STATE ============== */
 let state = {tab:"stages", lawTab:"concepts", situationId:null};
@@ -574,6 +628,12 @@ function selectSituation(id){
   loadMap(id);
   document.getElementById("mapSub").textContent =
     "Ситуация: «" + SITUATIONS.find(x=>x.id===id).title + "». Заполняйте норму, ответственного и риск по каждому шагу — минимум 5 шагов.";
+  const hint = document.getElementById("submitHint");
+  hint.textContent = "";
+  hint.removeAttribute("data-ok");
+  const pv = document.getElementById("presentView");
+  pv.hidden = true;
+  pv.innerHTML = "";
 }
 
 /* ---- legal map table ---- */
@@ -586,7 +646,8 @@ function loadMap(id){
   if(!Array.isArray(rows) || !rows.length){
     rows = emptyRows();
   }
-  renderMap(rows);
+  const s = SITUATIONS.find(x=>x.id===id);
+  renderMap(rows, (s && s.example) || DEFAULT_EXAMPLE);
 }
 
 function saveMap(rows){
@@ -603,23 +664,55 @@ function currentRows(){
   return rows;
 }
 
-function renderMap(rows){
+function renderMap(rows, exampleRow){
   const body = document.getElementById("mapBody");
   const cols = ["step","q","norm","who","risk"];
-  const phs = ["напр. Идентификация пользователя","напр. Чем подтверждается личность?","напр. Акт, №, дата, статус","напр. Оператор системы","напр. Риск / пробел"];
+  const ex = exampleRow || DEFAULT_EXAMPLE;
   let html = `<tr class="example">
     <td class="rownum">•</td>
-    ${EXAMPLE_ROW.map(v => `<td>${esc(v)}</td>`).join("")}
+    ${ex.map(v => `<td>${esc(v)}</td>`).join("")}
     <td class="rowdel"></td>
   </tr>`;
   rows.forEach((r, i) => {
     html += `<tr>
       <td class="rownum mono">${i+1}</td>
-      ${cols.map((c,ci) => `<td contenteditable="true" data-ph="${phs[ci]}">${esc(r[ci]||"")}</td>`).join("")}
+      ${cols.map((c,ci) => `<td contenteditable="true">${esc(r[ci]||"")}</td>`).join("")}
       <td class="rowdel"><button type="button" data-del="${i}" title="Удалить шаг">✕</button></td>
     </tr>`;
   });
   body.innerHTML = html;
+}
+
+function currentExample(){
+  const s = SITUATIONS.find(x=>x.id===state.situationId);
+  return (s && s.example) || DEFAULT_EXAMPLE;
+}
+
+/* ---- readable "for presentation" view, shown after a successful send ---- */
+function renderPresentView(rows, situationTitle){
+  const el = document.getElementById("presentView");
+  const labels = ["Юридический вопрос","Норма","Кто отвечает","Риск / пробел"];
+  el.innerHTML = `
+    <div class="present-head">
+      <div class="present-head-left">
+        <span class="present-tag">Для презентации</span>
+        <h4>${esc(situationTitle)}</h4>
+      </div>
+      <button class="btn" id="hidePresent" type="button">Скрыть</button>
+    </div>
+    ${rows.map((r,i) => `
+      <div class="present-step">
+        <div class="present-step-n">Шаг ${i+1}</div>
+        <div class="present-step-title">${esc(r[0]||"—")}</div>
+        <dl>
+          ${[r[1],r[2],r[3],r[4]].map((v,ci) => `<dt>${labels[ci]}</dt><dd>${esc(v||"—")}</dd>`).join("")}
+        </dl>
+      </div>
+    `).join("")}
+  `;
+  el.hidden = false;
+  document.getElementById("hidePresent").addEventListener("click", ()=>{ el.hidden = true; });
+  el.scrollIntoView({behavior:"smooth", block:"start"});
 }
 
 document.getElementById("mapBody").addEventListener("input", ()=>{
@@ -630,20 +723,20 @@ document.getElementById("mapBody").addEventListener("click", (e)=>{
   if(!del) return;
   const rows = currentRows();
   rows.splice(Number(del.dataset.del), 1);
-  renderMap(rows);
+  renderMap(rows, currentExample());
   saveMap(rows);
 });
 document.getElementById("addRow").addEventListener("click", ()=>{
   if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
   const rows = currentRows();
   rows.push(["","","","",""]);
-  renderMap(rows);
+  renderMap(rows, currentExample());
   saveMap(rows);
 });
 document.getElementById("clearMap").addEventListener("click", ()=>{
   if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
   const rows = emptyRows();
-  renderMap(rows);
+  renderMap(rows, currentExample());
   saveMap(rows);
   showToast("Карта очищена");
 });
@@ -661,6 +754,75 @@ document.getElementById("copyMap").addEventListener("click", async ()=>{
     showToast("Скопировано в буфер обмена");
   }catch(e){
     showToast("Не удалось скопировать — выделите текст вручную");
+  }
+});
+
+/* ---- submit case for presentation (Google Sheet via Apps Script) ---- */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzwTTgK6dch5YypyLXcbeeYkINkE0yGkdigXGtoo_p_NA-1D0EALFFeHMnFh6FJefKr/exec";
+
+(function initStudent(){
+  try{
+    const saved = JSON.parse(localStorage.getItem("legalnav-student") || "null");
+    if(saved){
+      document.getElementById("studentName").value = saved.name || "";
+      document.getElementById("studentGroup").value = saved.group || "";
+    }
+  }catch(e){}
+})();
+function saveStudent(){
+  try{
+    localStorage.setItem("legalnav-student", JSON.stringify({
+      name: document.getElementById("studentName").value.trim(),
+      group: document.getElementById("studentGroup").value.trim(),
+    }));
+  }catch(e){}
+}
+document.getElementById("studentName").addEventListener("input", saveStudent);
+document.getElementById("studentGroup").addEventListener("input", saveStudent);
+
+document.getElementById("submitCase").addEventListener("click", async ()=>{
+  const hint = document.getElementById("submitHint");
+  if(!state.situationId){ showToast("Сначала выберите ситуацию выше"); return; }
+  const name = document.getElementById("studentName").value.trim();
+  if(!name){ showToast("Укажите ФИО перед отправкой"); document.getElementById("studentName").focus(); return; }
+  const group = document.getElementById("studentGroup").value.trim();
+  const s = SITUATIONS.find(x=>x.id===state.situationId);
+  const rows = currentRows().filter(r => (r[0]||"").trim() && (r[2]||"").trim());
+  if(rows.length < 3){
+    showToast("Заполните минимум 3 шага (шаг + норма) перед отправкой");
+    return;
+  }
+  const header = ["Шаг услуги","Юридический вопрос","Норма","Кто отвечает","Риск/пробел"];
+  const mapText = rows.map((r,i)=> (i+1) + ". " + header.map((h,ci)=> h + ": " + (r[ci]||"—")).join(" | ")).join("\n");
+  const payload = {
+    "Дата/время": new Date().toLocaleString("ru-RU"),
+    "ФИО студента": name,
+    "Группа": group,
+    "Ситуация": s.title,
+    "Правовая карта услуги": mapText,
+  };
+  const btn = document.getElementById("submitCase");
+  btn.disabled = true;
+  const oldLabel = btn.textContent;
+  btn.textContent = "Отправка…";
+  try{
+    await fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload),
+    });
+    hint.textContent = "Отправлено преподавателю: " + payload["Дата/время"];
+    hint.setAttribute("data-ok","true");
+    showToast("Кейс отправлен ✓");
+    renderPresentView(rows, s.title);
+  }catch(err){
+    hint.textContent = "Не удалось отправить — проверьте подключение к интернету и повторите.";
+    hint.removeAttribute("data-ok");
+    showToast("Ошибка отправки");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = oldLabel;
   }
 });
 
@@ -698,5 +860,6 @@ if(state.situationId){
 }
 })();
 </script>
+
 </body>
 </html>
